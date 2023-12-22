@@ -24,13 +24,16 @@ jobs:
       - name: Push to Aliyun Registry
         if: ${{ contains( github.ref_name, 'main' ) }}
         env:
-          IMAGE_NAME: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}/danran/hyperscale:v11.3.0-pg14-mg-jdbc-http-sqlite-pgvector-fdw
+          IMAGE_NAME: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}/danran/hyperscale
+          CITUS_VERSION: v11.3.0
         run: |
           # show size
           du -sh ./*
           # build
-          docker build -f hyperscale/pg-14/Dockerfile --tag $IMAGE_NAME .
+          docker build -f hyperscale/pg-14/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg14-mg-jdbc-http-sqlite-pgvector-fdw .
+          docker build -f hyperscale/pg-15/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg15-mg-jdbc-http-sqlite-pgvector-fdw .
           # show images
           docker images | head -n 10
           # push
-          docker push $IMAGE_NAME
+          docker push $IMAGE_NAME:${CITUS_VERSION}-pg14-mg-jdbc-http-sqlite-pgvector-fdw
+          docker push $IMAGE_NAME:${CITUS_VERSION}-pg15-mg-jdbc-http-sqlite-pgvector-fdw

@@ -1,5 +1,5 @@
 ## Mongo FDW
-FROM postgres:14.9 as mongo-fdw-builder
+FROM postgres:14.10 as mongo-fdw-builder
 ARG MONGO_FDW_VERSION=5_5_1
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
@@ -18,7 +18,7 @@ RUN apt-get update \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
-FROM postgres:14.9 as jdbc-fdw-builder
+FROM postgres:14.10 as jdbc-fdw-builder
 ARG JDBC_FDW_VERSION=v0.3.1
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -31,7 +31,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## pgsql-http fdw
-FROM postgres:14.9 as http-fdw-builder
+FROM postgres:14.10 as http-fdw-builder
 ARG HTTP_FDW_VERSION=v1.6.0
 ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -43,7 +43,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## sqlite fdw
-FROM postgres:14.9 as sqlite-fdw-builder
+FROM postgres:14.10 as sqlite-fdw-builder
 ARG SQLITE_FDW_VERSION=v2.3.0
 ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -55,8 +55,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## Citus
-FROM postgres:14.9
-ARG VERSION=11.3.0
+FROM postgres:14.10
+ARG VERSION=12.0.0
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -91,7 +91,7 @@ RUN apt-get update \
        curl \
        libssl-dev libglib2.0-dev \
     && curl -s https://install.citusdata.com/community/deb.sh | bash \
-    && apt-get install -y postgresql-$PG_MAJOR-citus-11.3=$CITUS_VERSION \
+    && apt-get install -y postgresql-$PG_MAJOR-citus-12.0=$CITUS_VERSION \
                           postgresql-$PG_MAJOR-hll=2.17.citus-1 \
                           postgresql-$PG_MAJOR-topn=2.5.0.citus-1 \
                           postgresql-14-postgis-3 \
@@ -103,6 +103,7 @@ RUN apt-get update \
                           postgresql-14-cron \
                           default-jdk \
                           postgresql-14-pgvector \
+    && ln -s /usr/lib/jvm/java-17-openjdk-amd64/lib/server/libjvm.so /usr/lib/libjvm.so \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 
