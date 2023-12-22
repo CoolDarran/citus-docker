@@ -4,7 +4,7 @@ set -Eeo pipefail
 
 # citus user is the main user for this image and to prevent postgres user to connect.
 # password is set randomly to assure postgres user connection prevention
-export POSTGRES_PASSWORD=$(echo $RANDOM | md5sum | head -c 20)
+# export POSTGRES_PASSWORD=$(echo $RANDOM | md5sum | head -c 20)
 
 # usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'

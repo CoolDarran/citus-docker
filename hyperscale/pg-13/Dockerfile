@@ -1,5 +1,5 @@
-FROM postgres:13.5
-ARG VERSION=10.2.2
+FROM postgres:13.11
+ARG VERSION=11.3.0
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -19,9 +19,9 @@ RUN apt-get update \
        ca-certificates \
        curl \
     && curl -s https://install.citusdata.com/community/deb.sh | bash \
-    && apt-get install -y postgresql-$PG_MAJOR-citus-10.2=$CITUS_VERSION \
-                          postgresql-$PG_MAJOR-hll=2.16.citus-1 \
-                          postgresql-$PG_MAJOR-topn=2.4.0 \
+    && apt-get install -y postgresql-$PG_MAJOR-citus-11.3=$CITUS_VERSION \
+                          postgresql-$PG_MAJOR-hll=2.17.citus-1 \
+                          postgresql-$PG_MAJOR-topn=2.5.0.citus-1 \
                           postgresql-13-postgis-3 \
                           postgresql-plperl-13 \
                           postgresql-contrib \

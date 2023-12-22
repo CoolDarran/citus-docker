@@ -1,0 +1,36 @@
+name: CI - Docker
+
+on: ["push", "pull_request"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Shanghai
+    environment: 
+      name: alicloud
+
+    steps:
+      - uses: actions/checkout@v3
+ 
+      - name: Login to Aliyun Registry
+        uses: docker/login-action@v2
+        if: ${{ contains( github.ref_name, 'main' ) }}
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}
+          username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+
+      - name: Push to Aliyun Registry
+        if: ${{ contains( github.ref_name, 'main' ) }}
+        env:
+          IMAGE_NAME: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}/danran/hyperscale:v11.3.0-pg14-mg-jdbc-http-sqlite-pgvector-fdw
+        run: |
+          # show size
+          du -sh ./*
+          # build
+          docker build -f hyperscale/pg-14/Dockerfile --tag $IMAGE_NAME .
+          # show images
+          docker images | head -n 10
+          # push
+          docker push $IMAGE_NAME
