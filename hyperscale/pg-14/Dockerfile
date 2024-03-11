@@ -1,5 +1,5 @@
 ## Mongo FDW
-FROM postgres:14.10 as mongo-fdw-builder
+FROM postgres:14.11 as mongo-fdw-builder
 ARG MONGO_FDW_VERSION=5_5_1
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
@@ -18,7 +18,7 @@ RUN apt-get update \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
-FROM postgres:14.10 as jdbc-fdw-builder
+FROM postgres:14.11 as jdbc-fdw-builder
 ARG JDBC_FDW_VERSION=v0.3.1
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -31,7 +31,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## pgsql-http fdw
-FROM postgres:14.10 as http-fdw-builder
+FROM postgres:14.11 as http-fdw-builder
 ARG HTTP_FDW_VERSION=v1.6.0
 ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -43,7 +43,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## sqlite fdw
-FROM postgres:14.10 as sqlite-fdw-builder
+FROM postgres:14.11 as sqlite-fdw-builder
 ARG SQLITE_FDW_VERSION=v2.3.0
 ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -55,8 +55,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## Citus
-FROM postgres:14.10
-ARG VERSION=12.1.0
+FROM postgres:14.11
+ARG VERSION=12.1.2
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \

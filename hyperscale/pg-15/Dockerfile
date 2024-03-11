@@ -1,5 +1,5 @@
 ## Mongo FDW
-FROM postgres:15.4 as mongo-fdw-builder
+FROM postgres:15.6 as mongo-fdw-builder
 ARG MONGO_FDW_VERSION=5_4_0
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
@@ -18,7 +18,7 @@ RUN apt-get update \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
-FROM postgres:15.4 as jdbc-fdw-builder
+FROM postgres:15.6 as jdbc-fdw-builder
 ARG JDBC_FDW_VERSION=v0.3.1
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -31,7 +31,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## pgsql-http fdw
-FROM postgres:15.4 as http-fdw-builder
+FROM postgres:15.6 as http-fdw-builder
 ARG HTTP_FDW_VERSION=v1.6.0
 ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -43,7 +43,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## sqlite fdw
-FROM postgres:15.4 as sqlite-fdw-builder
+FROM postgres:15.6 as sqlite-fdw-builder
 ARG SQLITE_FDW_VERSION=v2.3.0
 ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -55,8 +55,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## Citus
-FROM postgres:15.4
-ARG VERSION=12.1.0
+FROM postgres:15.6
+ARG VERSION=12.1.2
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -95,7 +95,7 @@ RUN apt-get update \
                           postgresql-$PG_MAJOR-hll=2.18.citus-1 \
                           postgresql-$PG_MAJOR-topn=2.6.0.citus-1 \
                           postgresql-15-postgis-3 \
-                          postgresql-plperl-14 \
+                          postgresql-plperl-15 \
                           postgresql-contrib \
                           postgresql-15-partman \
                           postgresql-15-tdigest \

@@ -25,14 +25,14 @@ jobs:
         if: ${{ contains( github.ref_name, 'main' ) }}
         env:
           IMAGE_NAME: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}/danran/hyperscale
-          CITUS_VERSION: v12.1.0
+          CITUS_VERSION: v12.1.2
         run: |
           # show size
           du -sh ./*
           # build
-          docker build -f hyperscale/pg-14/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg14-mg-jdbc-http-sqlite-pgvector-fdw .
-          docker push $IMAGE_NAME:${CITUS_VERSION}-pg14-mg-jdbc-http-sqlite-pgvector-fdw
-          docker builder prune --all
+          # docker build -f hyperscale/pg-14/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg14-mg-jdbc-http-sqlite-pgvector-fdw .
+          # docker push $IMAGE_NAME:${CITUS_VERSION}-pg14-mg-jdbc-http-sqlite-pgvector-fdw
+          # docker builder prune --all
 
           docker build -f hyperscale/pg-15/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg15-mg-jdbc-http-sqlite-pgvector-fdw .
           docker push $IMAGE_NAME:${CITUS_VERSION}-pg15-mg-jdbc-http-sqlite-pgvector-fdw
@@ -41,6 +41,6 @@ jobs:
           docker build -f hyperscale/pg-16/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-fdw .
           docker push $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-fdw
           docker builder prune --all
-          
+
           # show images
           docker images | head -n 10

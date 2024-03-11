@@ -1,5 +1,5 @@
 ## Mongo FDW
-FROM postgres:16.0 as mongo-fdw-builder
+FROM postgres:16.2 as mongo-fdw-builder
 ARG MONGO_FDW_VERSION=5_4_0
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
@@ -18,7 +18,7 @@ RUN apt-get update \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
-FROM postgres:16.0 as jdbc-fdw-builder
+FROM postgres:16.2 as jdbc-fdw-builder
 ARG JDBC_FDW_VERSION=v0.3.1
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -31,7 +31,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## pgsql-http fdw
-FROM postgres:16.0 as http-fdw-builder
+FROM postgres:16.2 as http-fdw-builder
 ARG HTTP_FDW_VERSION=v1.6.0
 ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -43,7 +43,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## sqlite fdw
-FROM postgres:16.0 as sqlite-fdw-builder
+FROM postgres:16.2 as sqlite-fdw-builder
 ARG SQLITE_FDW_VERSION=v2.3.0
 ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -55,8 +55,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## Citus
-FROM postgres:16.0
-ARG VERSION=12.1.0
+FROM postgres:16.2
+ARG VERSION=12.1.2
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -72,17 +72,17 @@ ENV PGDATA /data
 
 ## mongo fdw
 COPY --from=mongo-fdw-builder /lib/ /lib/
-COPY --from=mongo-fdw-builder /usr/lib/postgresql/15/lib/ /usr/lib/postgresql/15/lib/
-COPY --from=mongo-fdw-builder /usr/share/postgresql/15/extension/ /usr/share/postgresql/15/extension/
+COPY --from=mongo-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
+COPY --from=mongo-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 ## jdbc-fdw
-COPY --from=jdbc-fdw-builder /usr/lib/postgresql/15/lib/ /usr/lib/postgresql/15/lib/
-COPY --from=jdbc-fdw-builder /usr/share/postgresql/15/extension/ /usr/share/postgresql/15/extension/
+COPY --from=jdbc-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
+COPY --from=jdbc-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 ## http-fdw
-COPY --from=http-fdw-builder /usr/lib/postgresql/15/lib/ /usr/lib/postgresql/15/lib/
-COPY --from=http-fdw-builder /usr/share/postgresql/15/extension/ /usr/share/postgresql/15/extension/
+COPY --from=http-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
+COPY --from=http-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 ## sqlite-fdw
-COPY --from=sqlite-fdw-builder /usr/lib/postgresql/15/lib/ /usr/lib/postgresql/15/lib/
-COPY --from=sqlite-fdw-builder /usr/share/postgresql/15/extension/ /usr/share/postgresql/15/extension/
+COPY --from=sqlite-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
+COPY --from=sqlite-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 
 # install Citus and needed extension on hyperscale
 RUN apt-get update \
