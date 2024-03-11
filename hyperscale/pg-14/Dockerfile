@@ -56,7 +56,7 @@ RUN apt-get update \
 
 ## Citus
 FROM postgres:14.10
-ARG VERSION=12.0.0
+ARG VERSION=12.1.0
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -91,9 +91,9 @@ RUN apt-get update \
        curl \
        libssl-dev libglib2.0-dev \
     && curl -s https://install.citusdata.com/community/deb.sh | bash \
-    && apt-get install -y postgresql-$PG_MAJOR-citus-12.0=$CITUS_VERSION \
-                          postgresql-$PG_MAJOR-hll=2.17.citus-1 \
-                          postgresql-$PG_MAJOR-topn=2.5.0.citus-1 \
+    && apt-get install -y postgresql-$PG_MAJOR-citus-12.1=$CITUS_VERSION \
+                          postgresql-$PG_MAJOR-hll=2.18.citus-1 \
+                          postgresql-$PG_MAJOR-topn=2.6.0.citus-1 \
                           postgresql-14-postgis-3 \
                           postgresql-plperl-14 \
                           postgresql-contrib \
