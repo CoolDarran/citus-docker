@@ -1,10 +1,10 @@
 ## Mongo FDW
 FROM postgres:16.2 as mongo-fdw-builder
-ARG MONGO_FDW_VERSION=5_4_0
+ARG MONGO_FDW_VERSION=5_5_1
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-15 libssl-dev libzstd-dev \
+    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 libssl-dev libzstd-dev \
     # mongo_fdw build
     && export PKG_CONFIG_PATH=${SOURCE_FILES}/mongo-c-driver/src/libmongoc/src:${SOURCE_FILES}/mongo-c-driver/src/libbson/src \
     && export LD_LIBRARY_PATH=/lib \
@@ -19,10 +19,10 @@ RUN apt-get update \
 
 ## jdbc fdw
 FROM postgres:16.2 as jdbc-fdw-builder
-ARG JDBC_FDW_VERSION=v0.3.1
+ARG JDBC_FDW_VERSION=v0.4.0
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends default-jdk wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-15 \
+    && apt-get install -y --no-install-recommends default-jdk wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 \
     && mkdir -p /tmp/jdbc_fdw \
     && wget -O - ${JDBC_FDW_URL} | tar -zx --strip-components=1 -C /tmp/jdbc_fdw \
     && cd /tmp/jdbc_fdw \
@@ -35,7 +35,7 @@ FROM postgres:16.2 as http-fdw-builder
 ARG HTTP_FDW_VERSION=v1.6.0
 ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-15 libcurl4-openssl-dev \
+    && apt-get install -y --no-install-recommends wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-16 libcurl4-openssl-dev \
     && mkdir -p /tmp/http_fdw \
     && wget -O - ${HTTP_FDW_URL} | tar -zx --strip-components=1 -C /tmp/http_fdw \
     && cd /tmp/http_fdw \
@@ -44,10 +44,10 @@ RUN apt-get update \
 
 ## sqlite fdw
 FROM postgres:16.2 as sqlite-fdw-builder
-ARG SQLITE_FDW_VERSION=v2.3.0
+ARG SQLITE_FDW_VERSION=v2.4.0
 ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends pgxnclient wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-15 libsqlite3-dev \
+    && apt-get install -y --no-install-recommends pgxnclient wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-16 libsqlite3-dev \
     && mkdir -p /tmp/sqlite_fdw \
     && wget -O - ${SQLITE_FDW_URL} | tar -zx --strip-components=1 -C /tmp/sqlite_fdw \
     && cd /tmp/sqlite_fdw \

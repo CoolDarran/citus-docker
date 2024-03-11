@@ -19,7 +19,7 @@ RUN apt-get update \
 
 ## jdbc fdw
 FROM postgres:14.11 as jdbc-fdw-builder
-ARG JDBC_FDW_VERSION=v0.3.1
+ARG JDBC_FDW_VERSION=v0.4.0
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends default-jdk wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-14 \
@@ -44,7 +44,7 @@ RUN apt-get update \
 
 ## sqlite fdw
 FROM postgres:14.11 as sqlite-fdw-builder
-ARG SQLITE_FDW_VERSION=v2.3.0
+ARG SQLITE_FDW_VERSION=v2.4.0
 ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends pgxnclient wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-14 libsqlite3-dev \
