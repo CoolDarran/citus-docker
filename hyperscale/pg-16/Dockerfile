@@ -1,20 +1,38 @@
 ## Mongo FDW
 FROM postgres:16.2 as mongo-fdw-builder
-ARG MONGO_FDW_VERSION=5_5_1
+ARG MONGO_FDW_VERSION=5_5_2
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
+ARG MONGOC_VERSION=1.17.3
+ARG MONGOC_URL=https://github.com/mongodb/mongo-c-driver/releases/download/${MONGOC_VERSION}/mongo-c-driver-${MONGOC_VERSION}.tar.gz
+ARG JSONC_VERSION=0.15-20200726
+ARG JSONC_URL=https://github.com/json-c/json-c/archive/json-c-${JSONC_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 libssl-dev libzstd-dev \
-    # mongo_fdw build
-    && export PKG_CONFIG_PATH=${SOURCE_FILES}/mongo-c-driver/src/libmongoc/src:${SOURCE_FILES}/mongo-c-driver/src/libbson/src \
+    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 libssl-dev libzstd-dev
+# # mongoc
+# RUN mkdir -p /tmp/mongo-c-driver \ 
+#     && wget -O - ${MONGOC_URL} | tar -zx --strip-components=1 -C /tmp/mongo-c-driver \
+#     && cd /tmp/mongo-c-driver \
+#     && cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF . \
+#     && cmake --build . \
+#     && cmake --build . --target install
+# # json-c
+# RUN mkdir -p /tmp/json-c \
+#     && wget -O - ${JSONC_URL} | tar -zx --strip-components=1 -C /tmp/json-c \
+#     && cd /tmp/json-c \
+#     && cmake . \
+#     && make \
+#     && make install 
+# mongo_fdw build
+RUN export PKG_CONFIG_PATH=/tmp/mongo-c-driver/src/libmongoc/src:/tmp/mongo-c-driver/src/libbson/src \
     && export LD_LIBRARY_PATH=/lib \
     && mkdir -p ${SOURCE_FILES} \
     && wget -O - ${MONGO_FDW_URL} | tar -zx --strip-components=1 -C ${SOURCE_FILES} \
     && cd ${SOURCE_FILES} \
     # mongo_fdw install
-    && ./autogen.sh --with-master \
-    && make \
-    && make install \
+    && ./autogen.sh \
+    && make USE_PGXS=1 \
+    && make USE_PGXS=1 install \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
@@ -32,7 +50,7 @@ RUN apt-get update \
 
 ## pgsql-http fdw
 FROM postgres:16.2 as http-fdw-builder
-ARG HTTP_FDW_VERSION=v1.6.0
+ARG HTTP_FDW_VERSION=v1.6.1
 ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-16 libcurl4-openssl-dev \
@@ -54,9 +72,25 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
+## pgai
+FROM postgres:16.2 as pgai-builder
+ARG PGAI_VERSION=extension-0.4.0
+ARG PGAI_URL=https://github.com/timescale/pgai/archive/refs/tags/${PGAI_VERSION}.tar.gz
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config git curl vim \
+        postgresql-plpython3-16 \
+        postgresql-16-pgextwlist \
+        postgresql-server-dev-16 \
+        postgresql-16-pgvector \
+        python3-pip \
+    && mkdir -p /tmp/pgai \
+    && wget -O - ${PGAI_URL} | tar -zx --strip-components=1 -C /tmp/pgai \
+    && cd /tmp/pgai \
+    && USE_PGXS=1 LIBDIR=/usr/lib make install
+
 ## Citus
 FROM postgres:16.2
-ARG VERSION=12.1.2
+ARG VERSION=12.1.5
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -83,6 +117,10 @@ COPY --from=http-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/post
 ## sqlite-fdw
 COPY --from=sqlite-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
 COPY --from=sqlite-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
+## pgai
+COPY --from=pgai-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
+COPY --from=pgai-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
+COPY --from=pgai-builder /usr/local/lib/ /usr/local/lib/
 
 # install Citus and needed extension on hyperscale
 RUN apt-get update \
@@ -102,7 +140,10 @@ RUN apt-get update \
                           postgresql-16-mysql-fdw \
                           postgresql-16-cron \
                           default-jdk \
+                          postgresql-plpython3-16 \
+                          postgresql-16-pgextwlist \
                           postgresql-16-pgvector \
+                          python3-pip \
     && ln -s /usr/lib/jvm/java-17-openjdk-amd64/lib/server/libjvm.so /usr/lib/libjvm.so \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
