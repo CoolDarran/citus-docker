@@ -38,7 +38,7 @@ jobs:
           docker push $IMAGE_NAME:${CITUS_VERSION}-pg15-mg-jdbc-http-sqlite-pgvector-fdw
           docker builder prune --all
 
-          docker build -f hyperscale/pg-16/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-fdw .
+          docker build -f hyperscale/pg-16/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-pgai-fdw .
           docker push $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-pgai-fdw
           docker builder prune --all
 

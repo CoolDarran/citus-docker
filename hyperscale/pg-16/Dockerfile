@@ -8,23 +8,8 @@ ARG JSONC_VERSION=0.15-20200726
 ARG JSONC_URL=https://github.com/json-c/json-c/archive/json-c-${JSONC_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 libssl-dev libzstd-dev
-# # mongoc
-# RUN mkdir -p /tmp/mongo-c-driver \ 
-#     && wget -O - ${MONGOC_URL} | tar -zx --strip-components=1 -C /tmp/mongo-c-driver \
-#     && cd /tmp/mongo-c-driver \
-#     && cmake -DENABLE_AUTOMATIC_INIT_AND_CLEANUP=OFF . \
-#     && cmake --build . \
-#     && cmake --build . --target install
-# # json-c
-# RUN mkdir -p /tmp/json-c \
-#     && wget -O - ${JSONC_URL} | tar -zx --strip-components=1 -C /tmp/json-c \
-#     && cd /tmp/json-c \
-#     && cmake . \
-#     && make \
-#     && make install 
-# mongo_fdw build
-RUN export PKG_CONFIG_PATH=/tmp/mongo-c-driver/src/libmongoc/src:/tmp/mongo-c-driver/src/libbson/src \
+    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 libssl-dev libzstd-dev \
+    && export PKG_CONFIG_PATH=/tmp/mongo-c-driver/src/libmongoc/src:/tmp/mongo-c-driver/src/libbson/src \
     && export LD_LIBRARY_PATH=/lib \
     && mkdir -p ${SOURCE_FILES} \
     && wget -O - ${MONGO_FDW_URL} | tar -zx --strip-components=1 -C ${SOURCE_FILES} \
