@@ -8,7 +8,7 @@ ARG JSONC_VERSION=0.15-20200726
 ARG JSONC_URL=https://github.com/json-c/json-c/archive/json-c-${JSONC_VERSION}.tar.gz
 ARG SOURCE_FILES=/tmp/mongo_fdw
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 libssl-dev libzstd-dev \
+    && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-$PG_MAJOR libssl-dev libzstd-dev \
     && export PKG_CONFIG_PATH=/tmp/mongo-c-driver/src/libmongoc/src:/tmp/mongo-c-driver/src/libbson/src \
     && export LD_LIBRARY_PATH=/lib \
     && mkdir -p ${SOURCE_FILES} \
@@ -25,7 +25,7 @@ FROM postgres:16.2 as jdbc-fdw-builder
 ARG JDBC_FDW_VERSION=v0.4.0
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends default-jdk wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-16 \
+    && apt-get install -y --no-install-recommends default-jdk wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-$PG_MAJOR \
     && mkdir -p /tmp/jdbc_fdw \
     && wget -O - ${JDBC_FDW_URL} | tar -zx --strip-components=1 -C /tmp/jdbc_fdw \
     && cd /tmp/jdbc_fdw \
@@ -33,40 +33,16 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make clean \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
-## pgsql-http fdw
-FROM postgres:16.2 as http-fdw-builder
-ARG HTTP_FDW_VERSION=v1.6.1
-ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-16 libcurl4-openssl-dev \
-    && mkdir -p /tmp/http_fdw \
-    && wget -O - ${HTTP_FDW_URL} | tar -zx --strip-components=1 -C /tmp/http_fdw \
-    && cd /tmp/http_fdw \
-    && USE_PGXS=1 LIBDIR=/usr/lib make \
-    && USE_PGXS=1 LIBDIR=/usr/lib make install
-
-## sqlite fdw
-FROM postgres:16.2 as sqlite-fdw-builder
-ARG SQLITE_FDW_VERSION=v2.4.0
-ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends pgxnclient wget ca-certificates make g++ cmake pkg-config postgresql-server-dev-16 libsqlite3-dev \
-    && mkdir -p /tmp/sqlite_fdw \
-    && wget -O - ${SQLITE_FDW_URL} | tar -zx --strip-components=1 -C /tmp/sqlite_fdw \
-    && cd /tmp/sqlite_fdw \
-    && USE_PGXS=1 LIBDIR=/usr/lib make \
-    && USE_PGXS=1 LIBDIR=/usr/lib make install
-
 ## pgai
 FROM postgres:16.2 as pgai-builder
-ARG PGAI_VERSION=extension-0.4.0
+ARG PGAI_VERSION=extension-0.6.0
 ARG PGAI_URL=https://github.com/timescale/pgai/archive/refs/tags/${PGAI_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config git curl vim \
-        postgresql-plpython3-16 \
-        postgresql-16-pgextwlist \
-        postgresql-server-dev-16 \
-        postgresql-16-pgvector \
+        postgresql-plpython3-$PG_MAJOR \
+        postgresql-$PG_MAJOR-pgextwlist \
+        postgresql-server-dev-$PG_MAJOR \
+        postgresql-$PG_MAJOR-pgvector \
         python3-pip \
     && mkdir -p /tmp/pgai \
     && wget -O - ${PGAI_URL} | tar -zx --strip-components=1 -C /tmp/pgai \
@@ -96,12 +72,6 @@ COPY --from=mongo-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/pos
 ## jdbc-fdw
 COPY --from=jdbc-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
 COPY --from=jdbc-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
-## http-fdw
-COPY --from=http-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
-COPY --from=http-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
-## sqlite-fdw
-COPY --from=sqlite-fdw-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
-COPY --from=sqlite-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 ## pgai
 COPY --from=pgai-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
 COPY --from=pgai-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
@@ -117,19 +87,33 @@ RUN apt-get update \
     && apt-get install -y postgresql-$PG_MAJOR-citus-12.1=$CITUS_VERSION \
                           postgresql-$PG_MAJOR-hll=2.18.citus-1 \
                           postgresql-$PG_MAJOR-topn=2.6.0.citus-1 \
-                          postgresql-16-postgis-3 \
-                          postgresql-plperl-16 \
+                          postgresql-$PG_MAJOR-postgis-3 \
+                          postgresql-plperl-$PG_MAJOR \
                           postgresql-contrib \
-                          postgresql-16-partman \
-                          postgresql-16-tdigest \
-                          postgresql-16-mysql-fdw \
-                          postgresql-16-cron \
+                          postgresql-$PG_MAJOR-partman \
+                          postgresql-$PG_MAJOR-tdigest \
+                          postgresql-$PG_MAJOR-mysql-fdw \
+                          postgresql-$PG_MAJOR-cron \
                           default-jdk \
-                          postgresql-plpython3-16 \
-                          postgresql-16-pgextwlist \
-                          postgresql-16-pgvector \
+                          postgresql-plpython3-$PG_MAJOR \
+                          postgresql-$PG_MAJOR-pgextwlist \
+                          postgresql-$PG_MAJOR-pgvector \
                           python3-pip \
     && ln -s /usr/lib/jvm/java-17-openjdk-amd64/lib/server/libjvm.so /usr/lib/libjvm.so \
+    && apt-get purge -y --auto-remove curl \
+    && rm -rf /var/lib/apt/lists/*
+
+## Using PostgreSQL Extension Repo by Pigsty
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates libssl-dev libglib2.0-dev \
+    && curl -fsSL https://repo.pigsty.io/key | gpg --dearmor -o /etc/apt/keyrings/pigsty.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/pigsty.gpg] https://repo.pigsty.io/apt/infra generic main" >> /etc/apt/sources.list.d/pigsty-io.list \
+    && echo "deb [signed-by=/etc/apt/keyrings/pigsty.gpg] https://repo.pigsty.io/apt/pgsql/bookworm bookworm main" >> /etc/apt/sources.list.d/pigsty-io.list \
+    && apt-get update \
+    && apt-get install -y postgresql-$PG_MAJOR-http \
+                          postgresql-$PG_MAJOR-sqlite-fdw postgresql-$PG_MAJOR-wrappers \
+                          postgresql-$PG_MAJOR-h3 postgresql-$PG_MAJOR-pg-polyline postgresql-$PG_MAJOR-pg-geohash \
+                          postgresql-$PG_MAJOR-pg-duckdb postgresql-$PG_MAJOR-pg-jsonschema \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -140,7 +124,7 @@ ENV LC_COLLATE 'zh_CN.UTF-8'
 ENV LC_CTYPE 'zh_CN.UTF-8'
 
 # set shared_preload_libraries to the list of extensions that needs to be loaded when postgresql starts
-RUN echo "shared_preload_libraries='citus,pg_cron,pg_stat_statements'" >> /usr/share/postgresql/postgresql.conf.sample
+RUN echo "shared_preload_libraries='citus,pg_cron,pg_stat_statements,pg_duckdb'" >> /usr/share/postgresql/postgresql.conf.sample
 
 # set default database name for pg_cron extension
 RUN echo "cron.database_name = 'citus'" >> /usr/share/postgresql/postgresql.conf.sample
