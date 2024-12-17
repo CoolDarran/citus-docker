@@ -47,7 +47,7 @@ RUN apt-get update \
     && mkdir -p /tmp/pgai \
     && wget -O - ${PGAI_URL} | tar -zx --strip-components=1 -C /tmp/pgai \
     && cd /tmp/pgai \
-    && USE_PGXS=1 LIBDIR=/usr/lib make install
+    && USE_PGXS=1 LIBDIR=/usr/lib PG_BIN=/usr/lib/postgresql/16/bin projects/extension/build.py install
 
 ## Citus
 FROM postgres:16.2
@@ -76,6 +76,7 @@ COPY --from=jdbc-fdw-builder /usr/share/postgresql/16/extension/ /usr/share/post
 COPY --from=pgai-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
 COPY --from=pgai-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 COPY --from=pgai-builder /usr/local/lib/ /usr/local/lib/
+COPY --from=pgai-builder /usr/local/bin/ /usr/local/bin/
 
 # install Citus and needed extension on hyperscale
 RUN apt-get update \
