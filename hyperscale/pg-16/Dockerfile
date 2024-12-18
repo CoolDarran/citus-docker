@@ -128,7 +128,7 @@ RUN apt-get update \
     && apt-get install -y postgresql-$PG_MAJOR-http \
                           postgresql-$PG_MAJOR-sqlite-fdw postgresql-$PG_MAJOR-wrappers \
                           postgresql-$PG_MAJOR-h3 postgresql-$PG_MAJOR-pg-polyline postgresql-$PG_MAJOR-pg-geohash \
-                          postgresql-$PG_MAJOR-pg-jsonschema \
+                          postgresql-$PG_MAJOR-pg-jsonschema postgresql-$PG_MAJOR-pg-parquet \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 
