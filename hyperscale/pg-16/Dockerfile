@@ -49,6 +49,17 @@ RUN apt-get update \
     && cd /tmp/pgai \
     && USE_PGXS=1 LIBDIR=/usr/lib PG_BIN=/usr/lib/postgresql/16/bin projects/extension/build.py install
 
+## pg_duckdb
+FROM postgres:16.2 as duckdb-builder
+ARG PG_DUCKDB_VERSION=v0.2.0
+ARG PG_DUCKDB_URL=https://github.com/duckdb/pg_duckdb/archive/refs/tags/${PG_DUCKDB_VERSION}.tar.gz
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends liblz4-dev wget ca-certificates make pkg-config git g++ cmake ninja-build libssl-dev postgresql-server-dev-$PG_MAJOR \
+    && cd /tmp && git clone --depth 1 --branch ${PG_DUCKDB_VERSION} https://github.com/duckdb/pg_duckdb.git \
+    && cd /tmp/pg_duckdb \
+    && USE_PGXS=1 LIBDIR=/usr/lib make clean \
+    && USE_PGXS=1 LIBDIR=/usr/lib make install
+
 ## Citus
 FROM postgres:16.2
 ARG VERSION=12.1.5
@@ -77,13 +88,16 @@ COPY --from=pgai-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
 COPY --from=pgai-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 COPY --from=pgai-builder /usr/local/lib/ /usr/local/lib/
 COPY --from=pgai-builder /usr/local/bin/ /usr/local/bin/
+## pg_duckdb
+COPY --from=duckdb-builder /usr/lib/postgresql/16/lib/ /usr/lib/postgresql/16/lib/
+COPY --from=duckdb-builder /usr/share/postgresql/16/extension/ /usr/share/postgresql/16/extension/
 
 # install Citus and needed extension on hyperscale
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
        curl \
-       libssl-dev libglib2.0-dev \
+       libssl-dev libglib2.0-dev liblz4-dev \
     && curl -s https://install.citusdata.com/community/deb.sh | bash \
     && apt-get install -y postgresql-$PG_MAJOR-citus-12.1=$CITUS_VERSION \
                           postgresql-$PG_MAJOR-hll=2.18.citus-1 \
@@ -114,7 +128,7 @@ RUN apt-get update \
     && apt-get install -y postgresql-$PG_MAJOR-http \
                           postgresql-$PG_MAJOR-sqlite-fdw postgresql-$PG_MAJOR-wrappers \
                           postgresql-$PG_MAJOR-h3 postgresql-$PG_MAJOR-pg-polyline postgresql-$PG_MAJOR-pg-geohash \
-                          postgresql-$PG_MAJOR-pg-duckdb postgresql-$PG_MAJOR-pg-jsonschema \
+                          postgresql-$PG_MAJOR-pg-jsonschema \
     && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 
