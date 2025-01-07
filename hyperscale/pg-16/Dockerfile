@@ -1,5 +1,5 @@
 ## Mongo FDW
-FROM postgres:16.2 as mongo-fdw-builder
+FROM postgres:16.6 as mongo-fdw-builder
 ARG MONGO_FDW_VERSION=5_5_2
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG MONGOC_VERSION=1.17.3
@@ -21,7 +21,7 @@ RUN apt-get update \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
-FROM postgres:16.2 as jdbc-fdw-builder
+FROM postgres:16.6 as jdbc-fdw-builder
 ARG JDBC_FDW_VERSION=v0.4.0
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
@@ -34,7 +34,7 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## pgai
-FROM postgres:16.2 as pgai-builder
+FROM postgres:16.6 as pgai-builder
 ARG PGAI_VERSION=extension-0.6.0
 ARG PGAI_URL=https://github.com/timescale/pgai/archive/refs/tags/${PGAI_VERSION}.tar.gz
 RUN apt-get update \
@@ -47,10 +47,13 @@ RUN apt-get update \
     && mkdir -p /tmp/pgai \
     && wget -O - ${PGAI_URL} | tar -zx --strip-components=1 -C /tmp/pgai \
     && cd /tmp/pgai \
+    # patch ollama version from ollama==0.2.1 to ollama==0.4.5
+    && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/requirements.txt \
+    && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/setup.cfg \
     && USE_PGXS=1 LIBDIR=/usr/lib PG_BIN=/usr/lib/postgresql/16/bin projects/extension/build.py install
 
 ## pg_duckdb
-FROM postgres:16.2 as duckdb-builder
+FROM postgres:16.6 as duckdb-builder
 ARG PG_DUCKDB_VERSION=v0.2.0
 ARG PG_DUCKDB_URL=https://github.com/duckdb/pg_duckdb/archive/refs/tags/${PG_DUCKDB_VERSION}.tar.gz
 RUN apt-get update \
@@ -61,8 +64,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## Citus
-FROM postgres:16.2
-ARG VERSION=12.1.5
+FROM postgres:16.6
+ARG VERSION=12.1.6
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \

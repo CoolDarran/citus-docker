@@ -56,7 +56,7 @@ RUN apt-get update \
 
 ## Citus
 FROM postgres:15.6
-ARG VERSION=12.1.5
+ARG VERSION=12.1.6
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \

@@ -25,7 +25,7 @@ jobs:
         if: ${{ contains( github.ref_name, 'main' ) }}
         env:
           IMAGE_NAME: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}/danran/hyperscale
-          CITUS_VERSION: v12.1.5
+          CITUS_VERSION: v12.1.6
         run: |
           # show size
           du -sh ./*
