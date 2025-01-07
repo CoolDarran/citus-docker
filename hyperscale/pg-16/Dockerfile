@@ -49,6 +49,7 @@ RUN apt-get update \
     && cd /tmp/pgai \
     # patch ollama version from ollama==0.2.1 to ollama==0.4.5
     && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/requirements.txt \
+    && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/old_requirements.txt \
     && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/setup.cfg \
     && USE_PGXS=1 LIBDIR=/usr/lib PG_BIN=/usr/lib/postgresql/16/bin projects/extension/build.py install
 
