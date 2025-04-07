@@ -1,5 +1,5 @@
 ## Mongo FDW
-FROM postgres:16.6 as mongo-fdw-builder
+FROM postgres:16.8 as mongo-fdw-builder
 ARG MONGO_FDW_VERSION=5_5_2
 ARG MONGO_FDW_URL=https://github.com/EnterpriseDB/mongo_fdw/archive/REL-${MONGO_FDW_VERSION}.tar.gz
 ARG MONGOC_VERSION=1.17.3
@@ -21,8 +21,8 @@ RUN apt-get update \
     && cd - && rm -rf ${SOURCE_FILES}
 
 ## jdbc fdw
-FROM postgres:16.6 as jdbc-fdw-builder
-ARG JDBC_FDW_VERSION=v0.4.0
+FROM postgres:16.8 as jdbc-fdw-builder
+ARG JDBC_FDW_VERSION=v0.5.0
 ARG JDBC_FDW_URL=https://github.com/pgspider/jdbc_fdw/archive/refs/tags/${JDBC_FDW_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends default-jdk wget ca-certificates make gcc cmake pkg-config postgresql-server-dev-$PG_MAJOR \
@@ -34,8 +34,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## pgai
-FROM postgres:16.6 as pgai-builder
-ARG PGAI_VERSION=extension-0.6.0
+FROM postgres:16.8 as pgai-builder
+ARG PGAI_VERSION=extension-0.9.0
 ARG PGAI_URL=https://github.com/timescale/pgai/archive/refs/tags/${PGAI_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config git curl vim \
@@ -47,15 +47,11 @@ RUN apt-get update \
     && mkdir -p /tmp/pgai \
     && wget -O - ${PGAI_URL} | tar -zx --strip-components=1 -C /tmp/pgai \
     && cd /tmp/pgai \
-    # patch ollama version from ollama==0.2.1 to ollama==0.4.5
-    && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/requirements.txt \
-    && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/old_requirements.txt \
-    && sed -i 's/ollama==0.2.1/ollama==0.4.5/g' projects/extension/setup.cfg \
     && USE_PGXS=1 LIBDIR=/usr/lib PG_BIN=/usr/lib/postgresql/16/bin projects/extension/build.py install
 
 ## pg_duckdb
-FROM postgres:16.6 as duckdb-builder
-ARG PG_DUCKDB_VERSION=v0.2.0
+FROM postgres:16.8 as duckdb-builder
+ARG PG_DUCKDB_VERSION=v0.3.1
 ARG PG_DUCKDB_URL=https://github.com/duckdb/pg_duckdb/archive/refs/tags/${PG_DUCKDB_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends liblz4-dev wget ca-certificates make pkg-config git g++ cmake ninja-build libssl-dev postgresql-server-dev-$PG_MAJOR \
@@ -65,8 +61,8 @@ RUN apt-get update \
     && USE_PGXS=1 LIBDIR=/usr/lib make install
 
 ## Citus
-FROM postgres:16.6
-ARG VERSION=12.1.6
+FROM postgres:16.8
+ARG VERSION=12.1.7
 LABEL maintainer="Citus Data https://citusdata.com" \
       org.label-schema.name="Citus" \
       org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
@@ -105,7 +101,7 @@ RUN apt-get update \
     && curl -s https://install.citusdata.com/community/deb.sh | bash \
     && apt-get install -y postgresql-$PG_MAJOR-citus-12.1=$CITUS_VERSION \
                           postgresql-$PG_MAJOR-hll=2.18.citus-1 \
-                          postgresql-$PG_MAJOR-topn=2.6.0.citus-1 \
+                          postgresql-$PG_MAJOR-topn=2.7.0.citus-1 \
                           postgresql-$PG_MAJOR-postgis-3 \
                           postgresql-plperl-$PG_MAJOR \
                           postgresql-contrib \
@@ -125,10 +121,10 @@ RUN apt-get update \
 ## Using PostgreSQL Extension Repo by Pigsty
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates libssl-dev libglib2.0-dev \
-    && curl -fsSL https://repo.pigsty.io/key | gpg --dearmor -o /etc/apt/keyrings/pigsty.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/pigsty.gpg] https://repo.pigsty.io/apt/infra generic main" >> /etc/apt/sources.list.d/pigsty-io.list \
-    && echo "deb [signed-by=/etc/apt/keyrings/pigsty.gpg] https://repo.pigsty.io/apt/pgsql/bookworm bookworm main" >> /etc/apt/sources.list.d/pigsty-io.list \
+    && echo "deb [trusted=yes] https://repo.pigsty.io/apt/infra generic main" > /etc/apt/sources.list.d/pigsty.list \
     && apt-get update \
+    && apt-get install -y pig \
+    && pig repo add pigsty -u && pig repo update \
     && apt-get install -y postgresql-$PG_MAJOR-http \
                           postgresql-$PG_MAJOR-sqlite-fdw postgresql-$PG_MAJOR-wrappers \
                           postgresql-$PG_MAJOR-h3 postgresql-$PG_MAJOR-pg-polyline postgresql-$PG_MAJOR-pg-geohash \
