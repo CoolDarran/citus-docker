@@ -25,7 +25,7 @@ jobs:
         if: ${{ contains( github.ref_name, 'main' ) }}
         env:
           IMAGE_NAME: ${{ secrets.ALIYUN_REGISTRY_ENDPOINT }}/danran/hyperscale
-          CITUS_VERSION: v12.1.7
+          CITUS_VERSION: v12.1.6
         run: |
           # show size
           du -sh ./*
@@ -39,7 +39,7 @@ jobs:
           # docker builder prune --all
 
           docker build -f hyperscale/pg-16/Dockerfile --tag $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-pgai-fdw-pigsty .
-          docker push $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-pgai-fdw-pigsty
+          docker push $IMAGE_NAME:${CITUS_VERSION}-pg16-mg-jdbc-http-sqlite-pgvector-pgai0105-fdw-pigsty
           docker builder prune --all
 
           # show images

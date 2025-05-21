@@ -1,0 +1,66 @@
+## 增加pgsql-http、sqlite fdw、pgvector插件
+
+## pgsql-http fdw
+FROM registry.cn-guangzhou.aliyuncs.com/danran/hyperscale:v11.1.1-pg14-ck-mg-hdfs-jdbc-fdw as http-fdw-builder
+ARG HTTP_FDW_VERSION=v1.6.0
+ARG HTTP_FDW_URL=https://github.com/pramsey/pgsql-http/archive/refs/tags/${HTTP_FDW_VERSION}.tar.gz
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget ca-certificates make clang-11 llvm-11 llvm-11-dev libc++-11-dev libc++abi-11-dev gcc g++ cmake pkg-config postgresql-server-dev-14 libcurl4-openssl-dev \
+    && mkdir -p /tmp/http_fdw \
+    && wget -O - ${HTTP_FDW_URL} | tar -zx --strip-components=1 -C /tmp/http_fdw \
+    && cd /tmp/http_fdw \
+    && USE_PGXS=1 LIBDIR=/usr/lib make \
+    && USE_PGXS=1 LIBDIR=/usr/lib make install
+
+## sqlite fdw
+FROM registry.cn-guangzhou.aliyuncs.com/danran/hyperscale:v11.1.1-pg14-ck-mg-hdfs-jdbc-fdw as sqlite-fdw-builder
+ARG SQLITE_FDW_VERSION=v2.4.0
+ARG SQLITE_FDW_URL=https://github.com/pgspider/sqlite_fdw/archive/refs/tags/${SQLITE_FDW_VERSION}.tar.gz
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends pgxnclient wget ca-certificates make clang-11 llvm-11 llvm-11-dev libc++-11-dev libc++abi-11-dev gcc g++ cmake pkg-config postgresql-server-dev-14 libsqlite3-dev \
+    && mkdir -p /tmp/sqlite_fdw \
+    && wget -O - ${SQLITE_FDW_URL} | tar -zx --strip-components=1 -C /tmp/sqlite_fdw \
+    && cd /tmp/sqlite_fdw \
+    && USE_PGXS=1 LIBDIR=/usr/lib make \
+    && USE_PGXS=1 LIBDIR=/usr/lib make install
+
+## pgvector
+FROM registry.cn-guangzhou.aliyuncs.com/danran/hyperscale:v11.1.1-pg14-ck-mg-hdfs-jdbc-fdw as pgvector-builder
+ARG PGVECTOR_VERSION=v0.7.3
+ARG PGVECTOR_URL=https://github.com/pgvector/pgvector/archive/refs/tags/${PGVECTOR_VERSION}.tar.gz
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget ca-certificates make clang-11 llvm-11 llvm-11-dev libc++-11-dev libc++abi-11-dev gcc g++ cmake pkg-config postgresql-server-dev-14 libcurl4-openssl-dev \
+    && mkdir -p /tmp/pgvector \
+    && wget -O - ${PGVECTOR_URL} | tar -zx --strip-components=1 -C /tmp/pgvector \
+    && cd /tmp/pgvector \
+    && USE_PGXS=1 LIBDIR=/usr/lib make \
+    && USE_PGXS=1 LIBDIR=/usr/lib make install
+
+## Citus
+FROM registry.cn-guangzhou.aliyuncs.com/danran/hyperscale:v11.1.1-pg14-ck-mg-hdfs-jdbc-fdw
+ARG VERSION=11.1.1
+LABEL maintainer="Citus Data https://citusdata.com" \
+      org.label-schema.name="Citus" \
+      org.label-schema.description="Scalable PostgreSQL for multi-tenant and real-time workloads" \
+      org.label-schema.url="https://www.citusdata.com" \
+      org.label-schema.vcs-url="https://github.com/citusdata/citus" \
+      org.label-schema.vendor="Citus Data, Inc." \
+      org.label-schema.version=${VERSION} \
+      org.label-schema.schema-version="1.0"
+
+ENV CITUS_VERSION ${VERSION}.citus-1
+ENV POSTGRES_DB citus
+ENV PGDATA /data
+
+## http-fdw
+COPY --from=http-fdw-builder /usr/lib/postgresql/14/lib/ /usr/lib/postgresql/14/lib/
+COPY --from=http-fdw-builder /usr/share/postgresql/14/extension/ /usr/share/postgresql/14/extension/
+## sqlite-fdw
+COPY --from=sqlite-fdw-builder /usr/lib/postgresql/14/lib/ /usr/lib/postgresql/14/lib/
+COPY --from=sqlite-fdw-builder /usr/share/postgresql/14/extension/ /usr/share/postgresql/14/extension/
+## pgvector
+COPY --from=pgvector-builder /usr/lib/postgresql/14/lib/ /usr/lib/postgresql/14/lib/
+COPY --from=pgvector-builder /usr/share/postgresql/14/extension/ /usr/share/postgresql/14/extension/
+
+HEALTHCHECK --interval=4s --start-period=6s CMD ./pg_healthcheck
+
