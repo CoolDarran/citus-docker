@@ -35,7 +35,7 @@ RUN apt-get update \
 
 ## pgai
 FROM postgres:16.9 as pgai-builder
-ARG PGAI_VERSION=extension-0.10.5
+ARG PGAI_VERSION=extension-0.10.1
 ARG PGAI_URL=https://github.com/timescale/pgai/archive/refs/tags/${PGAI_VERSION}.tar.gz
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget ca-certificates make gcc cmake pkg-config git curl vim \
